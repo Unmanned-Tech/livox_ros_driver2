@@ -241,6 +241,8 @@ else(ROS_EDITION STREQUAL "ROS2")
   rosidl_generate_interfaces(${LIVOX_INTERFACES}
     "msg/CustomPoint.msg"
     "msg/CustomMsg.msg"
+    "msg/LidarStatus.msg"
+    "srv/SetWorkMode.srv"
     DEPENDENCIES builtin_interfaces std_msgs
     LIBRARY_NAME ${PROJECT_NAME}
   )

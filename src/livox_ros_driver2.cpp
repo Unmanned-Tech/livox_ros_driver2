@@ -145,6 +145,17 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   this->get_parameter("output_data_type", output_type);
   this->get_parameter("frame_id", frame_id);
 
+  set_work_mode_srv_ = this->create_service<livox_ros_driver2::srv::SetWorkMode>(
+    "set_work_mode",
+    std::bind(&DriverNode::OnSetWorkMode, this,
+                std::placeholders::_1, std::placeholders::_2));
+  
+  work_mode_status_pub_ = this->create_publisher<livox_ros_driver2::msg::LidarStatus>(
+    "lidar_status", 10);
+
+  work_mode_status_poll_thread_ = std::make_shared<std::thread>(
+    &DriverNode::WorkModeStatusPollThread, this);
+
   if (publish_freq > 100.0) {
     publish_freq = 100.0;
   } else if (publish_freq < 0.5) {
@@ -174,6 +185,14 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
 
     if ((read_lidar->InitLdsLidar(user_config_path))) {
       DRIVER_INFO(*this, "Init lds lidar success!");
+      for (uint8_t i = 0; i < lddc_ptr_->lds_->lidar_count_; ++i) {
+        uint32_t handle = lddc_ptr_->lds_->lidars_[i].handle;
+        if (handle != 0) {
+          lidar_work_modes_[handle] = kLivoxLidarNormal;
+          RCLCPP_INFO(this->get_logger(), "Init lidar_work_modes_: handle=%u, mode=%u", handle, kLivoxLidarNormal);
+        }
+        
+      }
     } else {
       DRIVER_ERROR(*this, "Init lds lidar fail!");
     }

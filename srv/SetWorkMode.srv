@@ -1,0 +1,5 @@
+uint32 handle # 0 = all devices
+uint8 mode # 1=Noraml, 2=Standby
+---
+bool success
+string message

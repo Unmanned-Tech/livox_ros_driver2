@@ -26,6 +26,8 @@
 #define LIVOX_DRIVER_NODE_H
 
 #include "include/ros_headers.h"
+#include "livox_ros_driver2/srv/set_work_mode.hpp"
+#include "livox_ros_driver2/msg/lidar_status.hpp"
 
 namespace livox_ros {
 
@@ -64,6 +66,18 @@ class DriverNode final : public rclcpp::Node {
  private:
   void PointCloudDataPollThread();
   void ImuDataPollThread();
+  void WorkModeStatusPollThread();
+  void SendStandby();
+
+  void OnSetWorkMode(
+    const std::shared_ptr<livox_ros_driver2::srv::SetWorkMode::Request> request,
+    std::shared_ptr<livox_ros_driver2::srv::SetWorkMode::Response> response);
+
+  rclcpp::Service<livox_ros_driver2::srv::SetWorkMode>::SharedPtr set_work_mode_srv_;
+  rclcpp::Publisher<livox_ros_driver2::msg::LidarStatus>::SharedPtr work_mode_status_pub_;
+  std::shared_ptr<std::thread> work_mode_status_poll_thread_;
+  std::map<uint32_t, uint8_t> lidar_work_modes_;
+  std::mutex work_mode_mtx_;
 
   std::unique_ptr<Lddc> lddc_ptr_;
   std::shared_ptr<std::thread> pointclouddata_poll_thread_;
